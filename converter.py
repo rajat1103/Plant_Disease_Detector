@@ -4,7 +4,7 @@ import tensorflow as tf
 keras_model_path = "plant_disease_model.h5"
 
 # Define the path for the new TensorFlow Lite model
-tflite_model_path = "plant_disease_model.tflite"
+tflite_model_path = "plant_disease_model_v2.tflite"
 
 print(f"Loading Keras model from: {keras_model_path}")
 model = tf.keras.models.load_model(keras_model_path)

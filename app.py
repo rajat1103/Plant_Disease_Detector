@@ -9,7 +9,7 @@ from PIL import Image
 MODEL_PATH = "plant_disease_model.tflite" # Using .tflite model now
 UPLOADS_DIR = "static/uploads"
 # Your new URL is now included:
-MODEL_URL = "https://huggingface.co/rishabh110304/Plant_Disease_Detection/resolve/main/plant_disease_model.tflite?download=true" 
+MODEL_URL = "https://huggingface.co/rishabh110304/Plant_Disease_Detection/resolve/main/plant_disease_model_v2.tflite?download=true" 
 
 if not os.path.exists(MODEL_PATH):
     print(f"Model not found at {MODEL_PATH}. Downloading from {MODEL_URL}...")
