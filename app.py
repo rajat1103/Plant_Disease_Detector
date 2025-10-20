@@ -1,16 +1,36 @@
 import os
+import requests
 import numpy as np
 from flask import Flask, request, render_template, send_from_directory
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 from PIL import Image
 
+# --- MODEL DOWNLOAD LOGIC ---
+MODEL_PATH = "plant_disease_model.h5"
+MODEL_URL = "https://huggingface.co/rishabh110304/Plant_Disease_Detection/resolve/main/plant_disease_model.h5?download=true"
+
+if not os.path.exists(MODEL_PATH):
+    print(f"Model not found at {MODEL_PATH}. Downloading from {MODEL_URL}...")
+    try:
+        response = requests.get(MODEL_URL)
+        response.raise_for_status()  # Raise an exception for bad status codes
+        with open(MODEL_PATH, "wb") as f:
+            f.write(response.content)
+        print("Model downloaded successfully.")
+    except Exception as e:
+        print(f"Failed to download model: {e}")
+else:
+    print(f"Model file '{MODEL_PATH}' already exists.")
+# --- END OF DOWNLOAD LOGIC ---
+
+
 # --- 1. Initialize the Flask App ---
 app = Flask(__name__)
 
 # --- 2. Load the Saved Model ---
 print("Loading trained model...")
-model = load_model('plant_disease_model.h5')
+model = load_model(MODEL_PATH) # Load the model using the MODEL_PATH variable
 print("Model loaded successfully!")
 
 # --- 3. Define Constants ---
@@ -68,9 +88,14 @@ def predict():
         return render_template('index.html', prediction="No image file selected.")
         
     if file:
+        # Create the uploads directory if it doesn't exist
+        uploads_dir = 'static/uploads'
+        if not os.path.exists(uploads_dir):
+            os.makedirs(uploads_dir)
+            
         # Save the uploaded file to the 'static/uploads' directory
         filename = file.filename
-        file_path = os.path.join('static/uploads', filename)
+        file_path = os.path.join(uploads_dir, filename)
         file.save(file_path)
         
         # Make a prediction
