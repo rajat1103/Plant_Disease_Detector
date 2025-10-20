@@ -1,6 +1,6 @@
 flask
 requests
-numpy
+numpy<2
 Pillow
 gunicorn
 tflite-runtime
