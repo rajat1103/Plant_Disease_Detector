@@ -4,85 +4,111 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plant Disease Detection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f2f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
+            font-family: 'Inter', sans-serif;
         }
-        .container {
-            background-color: #ffffff;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            max-width: 500px;
-            width: 100%;
+        .result-card {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
-        h1 {
-            color: #333;
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
         }
-        form {
-            margin: 1.5rem 0;
-        }
-        input[type="file"] {
-            margin-bottom: 1rem;
-        }
-        button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 5px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .result {
-            margin-top: 1.5rem;
-        }
-        .result img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 5px;
-            margin-bottom: 1rem;
-        }
-        .result h2 {
-            color: #d9534f; /* Red for disease, change as needed */
-        }
-        .result h3 {
-            color: #555;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>🌿 Plant Disease Detector 🌿</h1>
-        <p>Upload an image of a plant leaf to get a prediction.</p>
-        
-        <form action="/predict" method="post" enctype="multipart/form-data">
-            <input type="file" name="image" accept="image/*" required>
-            <br>
-            <button type="submit">Predict Disease</button>
-        </form>
+<body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen p-4">
 
-        {% if image_path %}
-            <div class="result">
-                <h3>Your Uploaded Image:</h3>
-                <img src="{{ image_path }}" alt="Uploaded Leaf">
-                
-                <h2>Prediction: {{ prediction }}</h2>
-                <h3>Confidence: {{ confidence }}%</h3>
+    <div class="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-8 space-y-6">
+        
+        <div class="text-center">
+            <h1 class="text-3xl font-bold text-gray-900">Plant Disease Detector</h1>
+            <p class="text-gray-500 mt-2">Upload an image of a plant leaf to identify its disease.</p>
+        </div>
+
+        <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50 hover:bg-gray-100 transition-colors">
+            <form id="upload-form" action="/predict" method="post" enctype="multipart/form-data">
+                <input type="file" name="image" id="image-upload" class="hidden" accept="image/*">
+                <label for="image-upload" class="cursor-pointer bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg hover:bg-blue-700 transition-all">
+                    Choose an Image
+                </label>
+                <p id="file-name" class="text-sm text-gray-500 mt-4">No file selected</p>
+                <button type="submit" id="predict-button" class="mt-4 w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition-all disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
+                    Predict Disease
+                </button>
+            </form>
+        </div>
+
+        <!-- Loading Spinner (hidden by default) -->
+        <div id="loader" class="hidden flex justify-center items-center py-4">
+            <div class="loader"></div>
+            <p class="ml-4 text-gray-600">Analyzing image, please wait...</p>
+        </div>
+
+        <!-- This is the crucial part that displays the results -->
+        {% if prediction and prediction != "No image file selected." and prediction != "Model Error" %}
+        <div class="result-card bg-white rounded-lg p-6 mt-6 border border-gray-200">
+            <h2 class="text-2xl font-bold text-center mb-4">Analysis Result</h2>
+            <div class="grid md:grid-cols-2 gap-6 items-center">
+                <div class="text-center">
+                    <p class="text-lg font-semibold text-gray-700">Uploaded Image:</p>
+                    <img src="{{ image_path }}" alt="Uploaded Plant Leaf" class="mt-2 rounded-lg shadow-md mx-auto max-h-60">
+                </div>
+                <div class="space-y-4 text-center md:text-left">
+                    <div>
+                        <p class="text-gray-500 font-medium">Predicted Disease:</p>
+                        <p class="text-2xl font-bold text-blue-600">{{ prediction.replace('_', ' ') }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 font-medium">Confidence Score:</p>
+                        <p class="text-2xl font-bold text-green-600">{{ confidence }}%</p>
+                    </div>
+                </div>
             </div>
+        </div>
+        {% elif prediction %}
+        <!-- Handles errors or "no file" messages -->
+        <div class="text-center bg-red-100 text-red-700 p-4 rounded-lg">
+            <p>{{ prediction }}</p>
+        </div>
         {% endif %}
 
     </div>
+
+    <script>
+        const form = document.getElementById('upload-form');
+        const imageUpload = document.getElementById('image-upload');
+        const fileNameDisplay = document.getElementById('file-name');
+        const predictButton = document.getElementById('predict-button');
+        const loader = document.getElementById('loader');
+
+        imageUpload.addEventListener('change', () => {
+            if (imageUpload.files.length > 0) {
+                const fileName = imageUpload.files[0].name;
+                fileNameDisplay.textContent = fileName;
+                predictButton.disabled = false;
+            } else {
+                fileNameDisplay.textContent = 'No file selected';
+                predictButton.disabled = true;
+            }
+        });
+
+        form.addEventListener('submit', () => {
+            // Show the loader when the form is submitted
+            predictButton.disabled = true;
+            predictButton.textContent = 'Analyzing...';
+            loader.classList.remove('hidden');
+        });
+    </script>
+
 </body>
 </html>
