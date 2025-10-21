@@ -9,9 +9,9 @@ from PIL import Image
 app = Flask(__name__)
 
 # --- Configuration (Paths and URLs) ---
-MODEL_PATH = "plant_disease_model_v2.tflite"
+MODEL_PATH = "model_final.tflite"
 UPLOADS_DIR = "static/uploads"
-MODEL_URL = "https://huggingface.co/rishabh110304/Plant_Disease_Detection/resolve/main/plant_disease_model_v2.tflite?download=true"
+MODEL_URL = "https://huggingface.co/rishabh110304/Plant_Disease_Detection/resolve/main/model_final.tflite?download=true"
 
 # --- Global variable to hold the model ---
 # We initialize it to None. It will be loaded on the first request.
